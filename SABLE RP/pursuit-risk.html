@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAHP Pursuit Risk Assessment Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: auto 1fr;
+            min-height: calc(100vh - 20px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 0;
+            height: 100%;
+        }
+
+        .content-area {
+            padding: 25px;
+            overflow-y: auto;
+            max-height: calc(100vh - 140px);
+        }
+
+        .sidebar {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .section-header {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #3498db;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-header .icon {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .factors-section {
+            margin-bottom: 30px;
+        }
+
+        .factors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .factor-group {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #3498db;
+            transition: all 0.2s ease;
+        }
+
+        .factor-group:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+
+        .factor-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+
+        .factor-title .icon {
+            margin-right: 8px;
+            font-size: 1.1em;
+        }
+
+        .factor-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .option-btn {
+            padding: 8px 14px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.8em;
+            white-space: nowrap;
+        }
+
+        /* Color coding based on risk impact */
+        .option-btn[data-value="0"] {
+            background: #e8f5e8;
+            border-color: #4caf50;
+            color: #2e7d32;
+        }
+
+        .option-btn[data-value="-1"],
+        .option-btn[data-value="-2"],
+        .option-btn[data-value="-3"],
+        .option-btn[data-value="-4"] {
+            background: #e8f5e8;
+            border-color: #4caf50;
+            color: #1b5e20;
+            font-weight: 600;
+        }
+
+        .option-btn[data-value="1"],
+        .option-btn[data-value="2"] {
+            background: #fff3e0;
+            border-color: #ff9800;
+            color: #e65100;
+        }
+
+        .option-btn[data-value="3"],
+        .option-btn[data-value="4"],
+        .option-btn[data-value="5"] {
+            background: #ffebee;
+            border-color: #f44336;
+            color: #c62828;
+        }
+
+        .option-btn[data-value="6"],
+        .option-btn[data-value="7"],
+        .option-btn[data-value="8"],
+        .option-btn[data-value="9"],
+        .option-btn[data-value="10"] {
+            background: #ffebee;
+            border-color: #d32f2f;
+            color: #b71c1c;
+            font-weight: 600;
+        }
+
+        .option-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+        }
+
+        .option-btn.selected {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-weight: bold;
+        }
+
+        .option-btn.selected[data-value="0"],
+        .option-btn.selected[data-value="-1"],
+        .option-btn.selected[data-value="-2"],
+        .option-btn.selected[data-value="-3"],
+        .option-btn.selected[data-value="-4"] {
+            background: #4caf50;
+            color: white;
+            border-color: #388e3c;
+        }
+
+        .option-btn.selected[data-value="1"],
+        .option-btn.selected[data-value="2"] {
+            background: #ff9800;
+            color: white;
+            border-color: #f57c00;
+        }
+
+        .option-btn.selected[data-value="3"],
+        .option-btn.selected[data-value="4"],
+        .option-btn.selected[data-value="5"] {
+            background: #f44336;
+            color: white;
+            border-color: #d32f2f;
+        }
+
+        .option-btn.selected[data-value="6"],
+        .option-btn.selected[data-value="7"],
+        .option-btn.selected[data-value="8"],
+        .option-btn.selected[data-value="9"],
+        .option-btn.selected[data-value="10"] {
+            background: #d32f2f;
+            color: white;
+            border-color: #b71c1c;
+        }
+
+        .result-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            flex-grow: 1;
+        }
+
+        .result-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        .result-subtitle {
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            opacity: 0.8;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .radio-call {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid rgba(255,255,255,0.3);
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        .radio-call::before {
+            content: "📻 ";
+            margin-right: 5px;
+        }
+
+        .result-continue .result-title {
+            color: #4caf50;
+        }
+
+        .result-follow .result-title {
+            color: #ff9800;
+        }
+
+        .result-terminate .result-title {
+            color: #f44336;
+        }
+
+        .result-clear .result-title {
+            color: #9c27b0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: all 0.5s ease;
+            border-radius: 3px;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn.small {
+            padding: 6px 12px;
+            font-size: 0.85em;
+        }
+
+        .stats-section {
+            background: rgba(0,0,0,0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .stats-section.show {
+            display: block;
+        }
+
+        .risk-score {
+            font-size: 1em;
+            margin-bottom: 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr auto;
+            }
+            
+            .sidebar {
+                max-height: 300px;
+                overflow-y: auto;
+            }
+            
+            .content-area {
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .factors-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .content-area {
+                padding: 15px;
+            }
+            
+            .sidebar {
+                padding: 15px;
+            }
+            
+            .main-layout {
+                grid-template-rows: auto 1fr;
+            }
+            
+            .sidebar {
+                order: -1;
+                max-height: 250px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 5px;
+                min-height: calc(100vh - 10px);
+            }
+            
+            .header {
+                padding: 15px 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.6em;
+            }
+            
+            .option-btn {
+                padding: 6px 10px;
+                font-size: 0.75em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚔 SAHP PURSUIT RISK CALCULATOR</h1>
+            <p>Live Risk Assessment System - "Almost Zero Tolerance for Running"</p>
+        </div>
+
+        <div class="main-layout">
+            <div class="content-area">
+                <!-- Environmental Conditions -->
+                <div class="factors-section">
+                    <div class="section-header">
+                        <span class="icon">🌍</span>
+                        Environmental Conditions
+                    </div>
+                    <div class="factors-grid">
+                        <div class="factor-group">
+                            <div class="factor-title">
+                                <span class="icon">🚗</span>
+                                Traffic Density
+                            </div>
+                            <div class="factor-options" data-factor="traffic">
+                                <button class="option-btn selected" data-value="0">None</button>
+                                <button class="option-btn" data-value="1">Light</button>
+                                <button class="option-btn" data-value="3">Medium</button>
+                                <button class="option-btn" data-value="6">Heavy</button>
+                            </div>
+                        </div>
+
+                        <div class="factor-group">
+                            <div class="factor-title">
+                                <span class="icon">🌧️</span>
+                                Weather
+                            </div>
+                            <div class="factor-options" data-factor="weather">
+                                <button class="option-btn selected" data-value="0">Clear</button>
+                                <button class="option-btn" data-value="1">Light Rain</button>
+                                <button class="option-btn" data-value="3">Heavy Rain</button>
+                                <button class="option-btn" data-value="5">Storm</button>
+                            </div>
+                        </div>
+
+                        <div class="factor-group">
+                            <div class="factor-title">
+                                <span class="icon">👁️</span>
+                                Visibility
+                            </div>
+                            <div class="factor-options" data-factor="visibility">
+                                <button class="option-btn selected" data-value="0">Perfect</button>
+                                <button class="option-btn" data-value="1">High</button>
+                                <button class="option-btn" data-value="2">Medium</button>
+                                <button class="option-btn" data-value="4">Low</button>
+                                <button class="option-btn" data-value="7">Zero</button>
+                            </div>
+                        </div>
+
+                        <div class="factor-group">
+                            <div class="factor-title">
+                                <span class="icon">🚶</span>
+                                Pedestrians
+                            </div>
+                            <div class="factor-options" data-factor="pedestrians">
+                                <button class="option-btn selected" data-value="0">None</button>
+                                <button class="option-btn" data-value="2">Light</button>
+                                <button class="option-btn" data-value="4">Medium</button>
+                                <button class="option-btn" data-value="7">Heavy</button>
+                            </div>
+                        </div>
+
+                        <div class="factor-group">
+                            <div class="factor-title">
+                                <span class="icon">🏙️</span>
+                                Area Type
+                            </div>
+                            <div class="factor-options" data-factor="area">
+                                <button class="option-btn selected" data-value="0">Highway</button>
+                                <button class="option-btn" data-value="2">Commercial</button>
+                                <button class="option-btn" data-value="4">Residential</button>
+                                <button class="option-btn" data-value="6">School Zone</button>
+                            </div>
+                        </div>
+
+                        <div class="factor-group">
+                            <div class="factor-title">
+                                <span class="icon">🕐</span>
+                                Time of Day
+                            </div>
+                            <div class="factor-options" data-factor="time">
+                                <button class="option-btn selected" data-value="0">Late Night</button>
+                                <button class="option-btn" data-value="1">Early Morning</button>
+                                <button class="option-btn" data-value="3">Rush Hour</button>
+                                <button class="option-btn" data-value="2">Midday</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Incident Details -->
+                <div class="factors-section">
+                    <div class="section-header">
+                        <span class="icon">⚖️</span>
+                        Incident Details
+                    </div>
+                    <div class="factors-grid">
+                        <div class="factor-group">
+                            <div class="factor-title">
+                                <span class="icon">📋</span>
+                                Pursuit Reason
+                            </div>
+                            <div class="factor-options" data-factor="reason">
+                                <button class="option-btn selected" data-value="3">Minor Traffic</button>
+                                <button class="option-btn" data-value="1">Misdemeanor</button>
+                                <button class="option-btn" data-value="0">Felony</button>
+                                <button class="option-btn" data-value="-2">Violent Crime</button>
+                                <button class="option-btn" data-value="-4">Critical/Life Threat</button>
+                            </div>
+                        </div>
+
+                        <div class="factor-group">
+                            <div class="factor-title">
+                                <span class="icon">🔫</span>
+                                Weapons
+                            </div>
+                            <div class="factor-options" data-factor="weapons">
+                                <button class="option-btn selected" data-value="0">None</button>
+                                <button class="option-btn" data-value="-1">Melee</button>
+                                <button class="option-btn" data-value="-3">Firearms</button>
+                            </div>
+                        </div>
+
+                        <div class="factor-group">
+                            <div class="factor-title">
+                                <span class="icon">🏎️</span>
+                                Vehicle Type
+                            </div>
+                            <div class="factor-options" data-factor="vehicle">
+                                <button class="option-btn" data-value="5">Motorcycle</button>
+                                <button class="option-btn selected" data-value="1">Sedan</button>
+                                <button class="option-btn" data-value="2">Sports Car</button>
+                                <button class="option-btn" data-value="0">Truck/SUV</button>
+                            </div>
+                        </div>
+
+                        <div class="factor-group">
+                            <div class="factor-title">
+                                <span class="icon">😤</span>
+                                Suspect Behavior
+                            </div>
+                            <div class="factor-options" data-factor="behavior">
+                                <button class="option-btn selected" data-value="0">Compliant</button>
+                                <button class="option-btn" data-value="2">Evasive</button>
+                                <button class="option-btn" data-value="4">Erratic</button>
+                                <button class="option-btn" data-value="6">Aggressive</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Officer Resources -->
+                <div class="factors-section">
+                    <div class="section-header">
+                        <span class="icon">👮</span>
+                        Officer Resources
+                    </div>
+                    <div class="factors-grid">
+                        <div class="factor-group">
+                            <div class="factor-title">
+                                <span class="icon">✅</span>
+                                Authorization
+                            </div>
+                            <div class="factor-options" data-factor="authorized">
+                                <button class="option-btn" data-value="-3">Supervisor Approved</button>
+                                <button class="option-btn selected" data-value="2">Not Authorized</button>
+                            </div>
+                        </div>
+
+                        <div class="factor-group">
+                            <div class="factor-title">
+                                <span class="icon">🎖️</span>
+                                Experience
+                            </div>
+                            <div class="factor-options" data-factor="experience">
+                                <button class="option-btn" data-value="3">Rookie</button>
+                                <button class="option-btn" data-value="1">Standard</button>
+                                <button class="option-btn selected" data-value="0">Experienced</button>
+                                <button class="option-btn" data-value="-2">Veteran</button>
+                            </div>
+                        </div>
+
+                        <div class="factor-group">
+                            <div class="factor-title">
+                                <span class="icon">🚓</span>
+                                Backup Units
+                            </div>
+                            <div class="factor-options" data-factor="backup">
+                                <button class="option-btn" data-value="4">None</button>
+                                <button class="option-btn" data-value="2">1 Unit</button>
+                                <button class="option-btn selected" data-value="0">2-3 Units</button>
+                                <button class="option-btn" data-value="-1">4+ Units</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="result-card" id="resultCard">
+                    <div class="result-title" id="resultTitle"></div>
+                    <div class="result-subtitle">SUPERVISOR DIRECTIVE</div>
+                    
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                    
+                    <div class="radio-call" id="radioCall"></div>
+                    
+                    <div class="stats-section" id="statsSection">
+                        <div class="risk-score" id="riskScore"></div>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn small" onclick="toggleStats()">📊 Show Stats</button>
+                    <button class="btn" onclick="resetCalculator()">🔄 Reset to Defaults</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize with default selections (lowest severity options)
+        let selectedFactors = {
+            traffic: 0,
+            weather: 0,
+            visibility: 0,
+            pedestrians: 0,
+            reason: 3,        // Minor Traffic (highest risk for termination)
+            authorized: 2,    // Not Authorized (higher risk)
+            weapons: 0,       // None
+            vehicle: 1,       // Sedan (moderate risk)
+            experience: 0,    // Experienced (lower risk)
+            backup: 0,        // 2-3 Units (good backup)
+            area: 0,          // Highway (lowest risk)
+            time: 0,          // Late Night (lowest risk)
+            behavior: 0       // Compliant (lowest risk)
+        };
+
+        let statsVisible = false;
+
+        // Handle factor selection
+        document.querySelectorAll('.factor-options').forEach(group => {
+            group.addEventListener('click', (e) => {
+                if (e.target.classList.contains('option-btn')) {
+                    // Remove selection from siblings
+                    group.querySelectorAll('.option-btn').forEach(btn => {
+                        btn.classList.remove('selected');
+                    });
+                    
+                    // Add selection to clicked button
+                    e.target.classList.add('selected');
+                    
+                    // Store the selection
+                    const factor = group.dataset.factor;
+                    const value = parseInt(e.target.dataset.value);
+                    selectedFactors[factor] = value;
+                    
+                    // Immediately recalculate
+                    calculateRisk();
+                }
+            });
+        });
+
+        function calculateRisk() {
+            // Calculate base risk score
+            let riskScore = 0;
+            for (let factor in selectedFactors) {
+                riskScore += selectedFactors[factor];
+            }
+
+            // Add randomness factor (-2 to +2) to simulate human decision variability
+            const randomFactor = Math.floor(Math.random() * 5) - 2;
+            const finalScore = riskScore + randomFactor;
+
+            // Determine supervisor order based on score
+            let order, orderClass, radioCall, progressColor, progressWidth;
+            
+            if (finalScore <= 8) {
+                order = "CONTINUE PURSUIT";
+                orderClass = "result-continue";
+                radioCall = "All units, Supervisor 1. You are authorized to continue pursuit. Maintain safe following distance, keep me updated on suspect's direction and speed. Use caution and follow department protocols.";
+                progressColor = "#4caf50";
+                progressWidth = Math.min((finalScore + 5) / 13 * 100, 100);
+            } else if (finalScore <= 16) {
+                order = "FOLLOW AT DISTANCE";
+                orderClass = "result-follow";
+                radioCall = "Units in pursuit, Supervisor 1. Reduce speed and maintain visual contact only. Do not engage in aggressive tactics. I'm requesting air support to your location. Keep the suspect in sight but prioritize public safety.";
+                progressColor = "#ff9800";
+                progressWidth = (finalScore / 20) * 100;
+            } else if (finalScore <= 25) {
+                order = "TERMINATE PURSUIT";
+                orderClass = "result-terminate";
+                radioCall = "All units, Supervisor 1. Terminate pursuit immediately. I repeat, terminate pursuit. Return to normal patrol and switch to investigative procedures. We'll get them another day - public safety comes first.";
+                progressColor = "#f44336";
+                progressWidth = (finalScore / 30) * 100;
+            } else {
+                order = "CLEAR AREA";
+                orderClass = "result-clear";
+                radioCall = "All units, Supervisor 1. Code Red - clear the area immediately. Establish a perimeter at least 5 blocks out. No units are to engage. I'm calling in specialized units and requesting helicopter support. Everyone maintain safe distance.";
+                progressColor = "#9c27b0";
+                progressWidth = 100;
+            }
+
+            // Update display
+            const resultCard = document.getElementById('resultCard');
+            resultCard.className = `result-card ${orderClass}`;
+            
+            document.getElementById('resultTitle').textContent = order;
+            document.getElementById('radioCall').textContent = radioCall;
+            document.getElementById('riskScore').textContent = `Risk Score: ${finalScore} (Base: ${riskScore}, Human Factor: ${randomFactor >= 0 ? '+' : ''}${randomFactor})`;
+            
+            // Update progress bar
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.backgroundColor = progressColor;
+            progressFill.style.width = progressWidth + '%';
+        }
+
+        function toggleStats() {
+            const statsSection = document.getElementById('statsSection');
+            const button = event.target;
+            
+            statsVisible = !statsVisible;
+            
+            if (statsVisible) {
+                statsSection.classList.add('show');
+                button.textContent = '📊 Hide Stats';
+            } else {
+                statsSection.classList.remove('show');
+                button.textContent = '📊 Show Stats';
+            }
+        }
+
+        function resetCalculator() {
+            // Reset to default selections
+            selectedFactors = {
+                traffic: 0,
+                weather: 0,
+                visibility: 0,
+                pedestrians: 0,
+                reason: 3,
+                authorized: 2,
+                weapons: 0,
+                vehicle: 1,
+                experience: 0,
+                backup: 0,
+                area: 0,
+                time: 0,
+                behavior: 0
+            };
+
+            // Reset UI selections
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+
+            // Re-select defaults
+            document.querySelectorAll('.factor-options').forEach(group => {
+                const factor = group.dataset.factor;
+                const defaultValue = selectedFactors[factor];
+                const defaultBtn = group.querySelector(`[data-value="${defaultValue}"]`);
+                if (defaultBtn) {
+                    defaultBtn.classList.add('selected');
+                }
+            });
+
+            calculateRisk();
+        }
+
+        // Initialize with defaults
+        calculateRisk();
+    </script>
+</body>
+</html>
